@@ -101,7 +101,7 @@ const login = async (req, res, next) => {
     }
 };
 
-const getME = async (req, res, next) => {
+const getMe = async (req, res, next) => {
     try {
         return res.status(200).json({
             success: true,
@@ -121,5 +121,5 @@ const getME = async (req, res, next) => {
 module.exports = {
     register,
     login,
-    getME,
+    getMe,
 };
