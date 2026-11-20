@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-const { required } = require("zod/mini");
+
 
 const userSchema = new mongoose.Schema(
     {
