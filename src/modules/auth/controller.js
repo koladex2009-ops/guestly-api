@@ -1,7 +1,7 @@
 const User = require("../users/model");
 const jwt = require("jsonwebtoken");
 const env = require("../../config/env");
-const { id } = require("zod/locales");
+
 
 
 const register = async (req, res, next) => {
@@ -53,6 +53,16 @@ const login = async (req, res, next) => {
                 message: "Invalid email or password"
             });
         }
+        
+        const isPasswordValid = await user.comparePassword(password);
+        
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid email or password"
+            });
+        }
+
 
         if (!user.isActive) {
             return res.status(403).json({
@@ -61,15 +71,7 @@ const login = async (req, res, next) => {
             });
         }
 
-        const isPasswordValid = await user.comparePassword(password);
-
-        if (!isPasswordValid) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid email or password"
-            });
-        }
-
+      
         const token = jwt.sign(
             {
                 id: user._id,
