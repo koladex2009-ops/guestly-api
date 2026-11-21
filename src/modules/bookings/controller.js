@@ -3,7 +3,7 @@ const bookingService = require("./service");
 const createBooking = async (req, res, next) => {
     try {
         const booking = await bookingService.createBooking(
-            req.validated,
+            req.validated.body,
             req.user._id
         );
 

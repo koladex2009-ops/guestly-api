@@ -54,7 +54,7 @@ const bookingSchema = new mongoose.Schema(
         totalAmount: {
             type: Number,
             required: true,
-            min: 0,
+            min: 1,
             validate: {
                 validator: Number.isInteger,
                 message: "Total amount must be an integer in kobo",

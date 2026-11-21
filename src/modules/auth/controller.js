@@ -6,7 +6,7 @@ const env = require("../../config/env");
 
 const register = async (req, res, next) => {
     try {
-        const { firstName, lastName, email, password} = req.validated;
+        const { firstName, lastName, email, password } = req.validated.body;
 
         const existingUser = await User.findOne({ email });
 
@@ -43,11 +43,27 @@ const register = async (req, res, next) => {
 
 const login = async (req, res, next) => {
     try {
-        const { email, password } = req.validated;
+        const { email, password } = req.validated.body;
         
         const user = await User.findOne({ email }).select("+password");
         
         if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid email or password"
+            });
+        }
+
+        if (!user.isActive) {
+            return res.status(403).json({
+                success: false,
+                message: "Your account is inactive"
+            });
+        }
+
+        const isPasswordValid = await user.comparePassword(password);
+
+        if (!isPasswordValid) {
             return res.status(401).json({
                 success: false,
                 message: "Invalid email or password"

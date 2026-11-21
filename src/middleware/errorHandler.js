@@ -49,10 +49,5 @@ function errorHandler(error, req, res, next) {
 
     return res.status(appError.statusCode).json(response);
 }
-//   return res.status(appError.statusCode).json({
-//     success: false,
-//     message: appError.message,
-//   });
-// }
 
 module.exports = errorHandler;

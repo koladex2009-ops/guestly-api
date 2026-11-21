@@ -2,7 +2,7 @@ const hotelService = require("./service");
 
 const createHotel = async (req, res, next) => {
     try {
-        const hotel = await hotelService.createHotel(req.validated);
+        const hotel = await hotelService.createHotel(req.validated.body);
 
         return res.status(201).json({
             success: true,
