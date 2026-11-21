@@ -53,25 +53,7 @@ const login = async (req, res, next) => {
                 message: "Invalid email or password"
             });
         }
-        
-        const isPasswordValid = await user.comparePassword(password);
-        
-        if (!isPasswordValid) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid email or password"
-            });
-        }
 
-
-        if (!user.isActive) {
-            return res.status(403).json({
-                success: false,
-                message: "Your account is inactive"
-            });
-        }
-
-      
         const token = jwt.sign(
             {
                 id: user._id,

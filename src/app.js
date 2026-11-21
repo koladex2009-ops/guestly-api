@@ -10,6 +10,7 @@ const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(helmet());
 app.use(cors({
@@ -27,6 +28,7 @@ app.use(rateLimit({
   limit: 100,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
+  skip: (req) => req.originalUrl.startsWith('/api/v1/payments/webhook'),
 }));
 
 // Keep the Paystack webhook body raw so its signature can be verified later.
