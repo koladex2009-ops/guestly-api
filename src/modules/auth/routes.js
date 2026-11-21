@@ -10,7 +10,6 @@ const router = Router();
 router.post("/register", validate(registerSchema), register); // Registration
 router.post("/login", validate(loginSchema), login); // login
 router.get("/me", auth, getMe);
-// router.get("/", auth, authorize("manager"), getAllBookings );
 
 
 
