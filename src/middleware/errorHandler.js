@@ -26,11 +26,22 @@ function errorHandler(error, req, res, next) {
     ? error
     : new AppError(message, statusCode);
 
-  return res.status(appError.statusCode).json({
-    success: false,
-    message: appError.message,
-  });
+    const response = {
+      success: false,
+      message: appError.message,
+    };
+
+      if (appError.data) {
+        response.errors = appError.data;
+    }
+
+    return res.status(appError.statusCode).json(response);
 }
+//   return res.status(appError.statusCode).json({
+//     success: false,
+//     message: appError.message,
+//   });
+// }
 
 module.exports = errorHandler;
 
