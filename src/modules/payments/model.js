@@ -10,12 +10,12 @@ const paymentSchema = new mongoose.Schema(
       index: true,
     },
 
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-      index: true,
-    },
+    guest: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'User',
+  required: true,
+  index: true,
+},
 
     reference: {
       type: String,
@@ -24,11 +24,15 @@ const paymentSchema = new mongoose.Schema(
       trim: true,
     },
 
-    amount: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
+   amount: {
+  type: Number,
+  required: true,
+  min: 1,
+  validate: {
+    validator: Number.isInteger,
+    message: 'amount must be an integer in kobo',
+  },
+},
 
     currency: {
       type: String,
@@ -55,13 +59,19 @@ const paymentSchema = new mongoose.Schema(
     },
 
     gatewayResponse: {
-      type: mongoose.Schema.Types.Mixed,
-      default: null,
-    },
+  type: mongoose.Schema.Types.Mixed,
+  default: null,
+  select: false,
+},
   },
   {
     timestamps: true,
   }
+);
+
+paymentSchema.index(
+  { booking: 1, status: 1 },
+  { unique: true, partialFilterExpression: { status: 'success' } }
 );
 
 module.exports = mongoose.model('Payment', paymentSchema);

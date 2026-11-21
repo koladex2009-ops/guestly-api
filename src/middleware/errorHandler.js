@@ -1,4 +1,6 @@
 const AppError = require('../utils/AppError');
+const env = require('../config/env');
+const logger = require('../config/logger');
 
 function errorHandler(error, req, res, next) {
   if (res.headersSent) {
@@ -22,9 +24,19 @@ function errorHandler(error, req, res, next) {
     message = 'Invalid resource identifier';
   }
 
-  const appError = error instanceof AppError
-    ? error
-    : new AppError(message, statusCode);
+  const isAppError = error instanceof AppError;
+
+  // Save the real error in the logs
+  if (statusCode >= 500) {
+    logger.error(error.message, { stack: error.stack, path: req.originalUrl, method: req.method });
+  }
+
+  // On a live server, hide internal error text from users
+  if (statusCode >= 500 && !isAppError && env.NODE_ENV === 'production') {
+    message = 'Internal server error';
+  }
+
+  const appError = isAppError ? error : new AppError(message, statusCode);
 
   return res.status(appError.statusCode).json({
     success: false,
@@ -33,4 +45,3 @@ function errorHandler(error, req, res, next) {
 }
 
 module.exports = errorHandler;
-
