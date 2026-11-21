@@ -1,59 +1,49 @@
 const { verifyWebhookSignature } = require('./paystack');
-const { initializePayment, processWebhook, getPaymentStatus, listPayments } = require('./service');
+const { initializePayment, processWebhook, getPaymentStatus, listPayments, requestRefund } = require('./service');
 
 const send = (res, message, data) => res.status(200).json({ success: true, message, data });
 
-const initialize = async (req, res, next) => {
+async function initialize(req, res, next) {
   try {
-    const data = await initializePayment({ bookingId: req.validated.body.bookingId, user: req.user });
-    return send(res, 'Payment initialized', data);
-  } catch (error) {
-    return next(error);
-  }
-};
+    return send(res, 'Payment initialized', await initializePayment({ bookingId: req.validated.body.bookingId, user: req.user }));
+  } catch (error) { return next(error); }
+}
 
-const webhook = async (req, res, next) => {
+async function webhook(req, res, next) {
   try {
-    const signature = req.get('x-paystack-signature');
-    if (!Buffer.isBuffer(req.body) || !verifyWebhookSignature(req.body, signature)) {
+    if (!Buffer.isBuffer(req.body) || !verifyWebhookSignature(req.body, req.get('x-paystack-signature'))) {
       return res.status(401).json({ success: false, message: 'Invalid signature' });
     }
     const event = JSON.parse(req.body.toString('utf8'));
     await processWebhook(event);
     return res.status(200).json({ success: true });
-  } catch (error) {
-    return next(error); // a 500 makes Paystack retry later
-  }
-};
+  } catch (error) { return next(error); }
+}
 
-const status = async (req, res, next) => {
+async function status(req, res, next) {
   try {
-    const data = await getPaymentStatus({ reference: req.validated.params.reference, user: req.user });
-    return send(res, 'Payment status retrieved', data);
-  } catch (error) {
-    return next(error);
-  }
-};
+    return send(res, 'Payment status retrieved', await getPaymentStatus({ reference: req.validated.params.reference, user: req.user }));
+  } catch (error) { return next(error); }
+}
 
-const listMine = async (req, res, next) => {
+async function listMine(req, res, next) {
   try {
-    const { page, limit } = req.validated.query;
-    const data = await listPayments({ filter: { guest: req.user._id }, page, limit });
-    return send(res, 'Payments retrieved', data);
-  } catch (error) {
-    return next(error);
-  }
-};
+    return send(res, 'Payments retrieved', await listPayments({ filter: { guest: req.user._id }, ...req.validated.query }));
+  } catch (error) { return next(error); }
+}
 
-const listAll = async (req, res, next) => {
+async function listAll(req, res, next) {
   try {
-    const { status: paymentStatus, page, limit } = req.validated.query;
+    const { status: paymentStatus, ...pagination } = req.validated.query;
     const filter = paymentStatus ? { status: paymentStatus } : {};
-    const data = await listPayments({ filter, page, limit });
-    return send(res, 'Payments retrieved', data);
-  } catch (error) {
-    return next(error);
-  }
-};
+    return send(res, 'Payments retrieved', await listPayments({ filter, ...pagination }));
+  } catch (error) { return next(error); }
+}
 
-module.exports = { initialize, webhook, status, listMine, listAll };
+async function refund(req, res, next) {
+  try {
+    return send(res, 'Refund submitted', await requestRefund({ reference: req.validated.params.reference, user: req.user }));
+  } catch (error) { return next(error); }
+}
+
+module.exports = { initialize, webhook, status, listMine, listAll, refund };
