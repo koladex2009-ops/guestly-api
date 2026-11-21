@@ -1,3 +1,5 @@
+const AppError = require('../utils/AppError');
+
 module.exports = (schema) => (req, res, next) => {
   if (!schema) {
     return next();
@@ -10,14 +12,15 @@ module.exports = (schema) => (req, res, next) => {
   });
 
   if (!result.success) {
-    return next(new (require('../utils/AppError'))(
-      'Request validation failed',
-      400,
-      result.error.flatten(),
-    ));
+    return next(
+      new AppError(
+        'Request validation failed',
+        400,
+        result.error.flatten(),
+      ),
+    );
   }
 
   req.validated = result.data;
   return next();
 };
-
