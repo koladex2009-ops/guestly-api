@@ -12,7 +12,8 @@ const envSchema = z.object({
   CORS_ORIGINS: z.string().default(''),
   PAYSTACK_SECRET_KEY: z.string().optional(),
   PAYSTACK_PUBLIC_KEY: z.string().optional(),
-  PAYSTACK_CALLBACK_URL: z.string().optional(),
+  PAYSTACK_CALLBACK_URL: z.url().startsWith('https://').optional(),
+  CHECKIN_DOCUMENT_KEY: z.string().optional(),
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
@@ -29,8 +30,15 @@ if (!result.success) {
     .join('\n');
   throw new Error(`Invalid environment configuration:\n${issues}`);
 }
-if (result.data.NODE_ENV === 'production' && !result.data.PAYSTACK_SECRET_KEY) {
-  throw new Error('PAYSTACK_SECRET_KEY is required in production');
+if (result.data.NODE_ENV === 'production' && (!result.data.PAYSTACK_SECRET_KEY || !result.data.PAYSTACK_CALLBACK_URL)) {
+  throw new Error('PAYSTACK_SECRET_KEY and PAYSTACK_CALLBACK_URL are required in production');
+}
+
+if (result.data.NODE_ENV === 'production') {
+  const value = result.data.CHECKIN_DOCUMENT_KEY || '';
+  if (Buffer.from(value, 'base64').length !== 32 || Buffer.from(value, 'base64').toString('base64') !== value) {
+    throw new Error('CHECKIN_DOCUMENT_KEY must be a base64-encoded 32-byte value in production');
+  }
 }
 
 module.exports = {
