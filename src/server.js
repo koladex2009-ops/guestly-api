@@ -7,6 +7,8 @@ const { connectDb, disconnectDb } = require('./config/db');
 async function startServer() {
   await connectDb();
 
+  if (env.NODE_ENV !== 'test') require('./jobs/expireBookings').start();
+
   const server = http.createServer(app);
   server.listen(env.PORT, () => {
     logger.info(`Server listening on port ${env.PORT}`);

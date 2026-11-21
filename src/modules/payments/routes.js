@@ -2,21 +2,17 @@ const { Router } = require('express');
 const auth = require('../../middleware/auth');
 const authorize = require('../../middleware/role');
 const validate = require('../../middleware/validate');
-const { initializePaymentSchema } = require('./validation');
-const { initialize, webhook } = require('./controller');
+const { initializePaymentSchema, listPaymentsSchema, paymentStatusSchema } = require('./validation');
+const { initialize, webhook, status, listMine, listAll } = require('./controller');
 
 const router = Router();
 
-// Called by Paystack, not by users, so it has no auth. The signature check protects it.
+// Called by Paystack, not by users: no auth, protected by the signature check
 router.post('/webhook', webhook);
 
-// A logged-in guest starts a payment for their own pending booking.
-router.post(
-  '/initialize',
-  auth,
-  authorize('guest'),
-  validate(initializePaymentSchema),
-  initialize
-);
+router.post('/initialize', auth, authorize('guest'), validate(initializePaymentSchema), initialize);
+router.get('/me', auth, authorize('guest'), validate(listPaymentsSchema), listMine);
+router.get('/', auth, authorize('manager'), validate(listPaymentsSchema), listAll);
+router.get('/:reference/status', auth, validate(paymentStatusSchema), status);
 
 module.exports = router;
