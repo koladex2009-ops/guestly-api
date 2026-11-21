@@ -1,5 +1,5 @@
 const { verifyWebhookSignature } = require('./paystack');
-const { processWebhook } = require('./service');
+const { initializePayment, processWebhook } = require('./service');
 
 const webhook = async (req, res, next) => {
   try {
@@ -16,4 +16,21 @@ const webhook = async (req, res, next) => {
   }
 };
 
-module.exports = { webhook };
+const initialize = async (req, res, next) => {
+  try {
+    // req.user comes from the auth middleware, bookingId from the validated body
+    const data = await initializePayment({
+      bookingId: req.validated.body.bookingId,
+      user: req.user,
+    });
+    return res.status(200).json({
+      success: true,
+      message: 'Payment initialized',
+      data,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+module.exports = { initialize, webhook };
